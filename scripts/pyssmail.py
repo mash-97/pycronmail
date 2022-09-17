@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from platform import java_ver
 import sys
 import os
 import time
@@ -20,6 +21,7 @@ def GB(bytes):
 # cpu cores
 def get_cpu_count():
   cpu_count = psutil.cpu_count()
+  return cpu_count
 
 # average cpu usage percent
 def get_average_cpu_usage(count=5):
@@ -80,7 +82,8 @@ def get_host_stats():
   }
   return host
 
-def form_system_status_body():
+def form_system_status_body(qoute=None):
+  qoute = qoute or {'qoute': "Life is short! O human race, fall in love.", 'writer': "Wanderer Master Maeda"}
   start_time = time.time()
 
   # system status
@@ -106,61 +109,65 @@ def form_system_status_body():
 
   [CPU Stats]
   cpu cores: {cc}
-  average cpu usage: {acu}%%
-  current cpu frequency: {cf['current']} Mhz
-  minimum cpu frequency: {cf['min']} Mhz
-  maximum cpu frequency: {cf['max']} Mhz
+  average cpu usage: {'%.3f'%(acu)}%%
+  current cpu frequency: {'%.3f'%(cf['current'])} Mhz
+  minimum cpu frequency: {'%.3f'%(cf['min'])} Mhz
+  maximum cpu frequency: {'%.3f'%(cf['max'])} Mhz
 
   [Virtual Memory Stats]
-  total: {vms['total']}GB
-  usage percent: {vms['percent']}%%
+  total: {'%.3f'%(vms['total'])}GB
+  usage percent: {'%.3f'%(vms['percent'])}%%
 
   [Disk Usage]
-  total: {du['total']}GB
-  usage percent: {du['percent']}%%
+  total: {'%.3f'%(du['total'])}GB
+  usage percent: {'%.3f'%(du['percent'])}%%
 
   [Others]
-  battery percent: {bs['percent']}%%
+  battery percent: {'%.3f'%(bs['percent'])}%%
   power plugged: {bs['power_plugged']}
 
   (data processed in %.3fs)
+
+  "{qoute['qoute']}" - {qoute['writer']}
   """%(elapsed_time)
 
   html = f"""\
   <html>
   <body>
-    <b>[Host Info]</b>
-    sysname: {host['sysname']}
-    nodename: {host['nodename']}
-    kernel version: {host['kernel_version']}
-    version: {host['version']}
-    machine: {host['machine']}
-
-    <b>[CPU Stats]</b>
-    cpu cores: {cc}
-    average cpu usage: {acu}%%
-    current cpu frequency: {cf['current']} Mhz
-    minimum cpu frequency: {cf['min']} Mhz
-    maximum cpu frequency: {cf['max']} Mhz
-
-    <b>[Virtual Memory Stats]</b>
-    total: {vms['total']}GB
-    usage percent: {vms['percent']}%%
-
-    <b>[Disk Usage]</b>
-    total: {du['total']}GB
-    usage percent: {du['percent']}%%
-
-    <b>[Others]</b>
-    battery percent: {bs['percent']}%%
-    power plugged: {bs['power_plugged']}
-
-    <b>(data processed in %.3fs)
+    <b>[Host Info]</b><br>
+    sysname: {host['sysname']}<br>
+    nodename: {host['nodename']}<br>
+    kernel version: {host['kernel_version']}<br>
+    version: {host['version']}<br>
+    machine: {host['machine']}<br>
+    <br>
+    <b>[CPU Stats]</b><br>
+    cpu cores: {cc}<br>
+    average cpu usage: {'%.3f'%(acu)}%%<br>
+    current cpu frequency: {'%.3f'%(cf['current'])} Mhz<br>
+    minimum cpu frequency: {'%.3f'%(cf['min'])} Mhz<br>
+    maximum cpu frequency: {'%.3f'%(cf['max'])} Mhz<br>
+    <br>
+    <b>[Virtual Memory Stats]</b><br>
+    total: {'%.3f'%(vms['total'])}GB<br>
+    usage percent: {'%.3f'%(vms['percent'])}%%<br>
+    <br>
+    <b>[Disk Usage]</b><br>
+    total: {'%.3f'%(du['total'])}GB<br>
+    usage percent: {'%.3f'%(du['percent'])}%%<br>
+    <br>
+    <b>[Others]</b><br>
+    battery percent: {'%.3f'%(bs['percent'])}%%<br>
+    power plugged: {bs['power_plugged']}<br>
+<br>
+    <b>(data processed in %.3fs)</b><br>
+    <br>
+    <p><q>{qoute['qoute']}</q> - {qoute['writer']}</p>
   </body>
   </html>
   """%(elapsed_time)
 
-  return [text, html]
+  return {'text': text, 'html': html}
 
 def get_system_status_message(sender_email, receiver_email, text, html):
   # time
@@ -190,9 +197,12 @@ def send_mail(sender_email, sender_password, receiver_email, message):
   context = ssl.create_default_context()
   with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
       server.login(sender_email, sender_password)
+      logging.info(f"try email protocol between sender: {sender_email} <=> receiver: {receiver_email}")
       server.sendmail(
           sender_email, receiver_email, message.as_string()
       )
+      logging.info(f"reached after mail")
+
 
 
 def parse_sender_config(file_path):
@@ -207,7 +217,14 @@ def parse_sender_config(file_path):
         flines.append(line)
     sender_email = flines[0]
     sender_password = flines[1]
-  return [sender_email, sender_password]
+    qoute = None
+    if len(flines) == 4:
+      qoute = {
+        'qoute': flines[2],
+        'writer': flines[3]
+      }
+
+  return {'email': sender_email, 'password': sender_password, 'qoute': qoute}
 
 def parse_receiver_emails(file_path):
   receiver_emails = []
@@ -227,12 +244,22 @@ if __name__ == '__main__':
   
   log_file_path = sys.argv[1]
   logging.basicConfig(filename=log_file_path, encoding='utf-8', level=logging.DEBUG, format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p')
+  logging.info("==== Begin ====")
+
   sender_config_file_path = sys.argv[2]
   receiver_emails_store_path = sys.argv[3]
   
-  logging.info(f"parsed sender configs: {parse_sender_config(sender_config_file_path)}")
-  logging.info(f"parsed receiver emails: {parse_receiver_emails(receiver_emails_store_path)}")
+  sender = parse_sender_config(sender_config_file_path)
+  receivers = parse_receiver_emails(receiver_emails_store_path)
   logging.info(f"form status message: ")
-  fssb = form_system_status_body()
-  logging.info(f"plain text: {fssb[0]}")
-  logging.info(f"html text: {fssb[1]}%%")
+
+  # generate the system status message
+  fssb = form_system_status_body(sender['qoute'])
+  logging.info(f"plain text: \n{fssb['text']}")
+  
+  # system status message send
+  for receiver_email in receivers:
+    message = get_system_status_message(sender['email'], receiver_email, fssb['text'], fssb['html'])
+    send_mail(sender['email'], sender['password'], receiver_email, message)
+  
+  logging.info("==== End ====")
