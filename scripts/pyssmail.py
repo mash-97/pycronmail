@@ -197,11 +197,11 @@ def send_mail(sender_email, sender_password, receiver_email, message):
   context = ssl.create_default_context()
   with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
       server.login(sender_email, sender_password)
-      logging.info(f"try email protocol between sender: {sender_email} <=> receiver: {receiver_email}")
       server.sendmail(
           sender_email, receiver_email, message.as_string()
       )
-      logging.info(f"reached after mail")
+      logging.info(f"{sender_email} => {receiver_email}")
+      
 
 
 
@@ -251,11 +251,10 @@ if __name__ == '__main__':
   
   sender = parse_sender_config(sender_config_file_path)
   receivers = parse_receiver_emails(receiver_emails_store_path)
-  logging.info(f"form status message: ")
 
   # generate the system status message
   fssb = form_system_status_body(sender['qoute'])
-  logging.info(f"plain text: \n{fssb['text']}")
+  logging.info(f"Message: \n{fssb['text']}")
   
   # system status message send
   for receiver_email in receivers:
