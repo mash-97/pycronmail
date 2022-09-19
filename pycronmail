@@ -1,0 +1,191 @@
+#!/usr/bin/bash
+
+# define variables
+app_dir=$HOME/.${0##*/}
+config_path=$app_dir/${0##*/}.config
+log_path=$app_dir/${0##*/}.log
+receivers_emails_path=$app_dir/receivers.email
+local_bin_dir=$HOME/.local/bin
+pyssmail_path=$local_bin_dir/pyssmail.py
+
+# confirm local bin dir exists and exists in the $PATH
+function confirm_local_bin () {
+  if [[ -d $HOME/.local ]]
+  then
+    if [[ ! -d $HOME/.local/bin ]]
+    then
+      echo "[not found] $HOME/.local/bin"
+      echo "[creating] $HOME/.local/bin"
+      `mkdir $HOME/.local/bin`
+    fi
+  else
+    echo "[not found] $HOME/.local/bin"
+    echo "[creating] $HOME/.local/bin"
+    `mkdir $HOME/.local`
+    `mkdir $HOME/.local/bin`
+  fi
+  lbdcp=`echo $PATH | grep $local_bin_dir`
+
+  if [[ -z "$lbdcp" ]]
+  then
+    `echo "export PATH=$(echo '$PATH'):$local_bin_dir" >> $HOME/.bashrc`
+  fi
+
+  echo "[OK] $HOME/.local/bin"
+}
+
+# install command function
+function install_python () {
+  # check for python installation
+  echo "Check for python"
+  python_path=`which python`
+
+  if [[ "$python_path" == "" ]]
+  then
+    echo "Python not found! the program can't proceed further without an installed python!"
+    echo "Do you want to install python using 'sudo apt install python3'? (y/n) "
+    read input
+    if [[ "$input" -eq "y" ]]
+    then
+      echo "Trying to install python3 from the script..." 
+      echo "If it fails to install python3 please install python3 first manually then proceed with the script again."
+      # install python
+      echo "[install] python3"
+      echo `sudo apt install -qq --yes python3`
+    else
+      echo "Exiting the program!"
+      exit 1
+    fi 
+  else
+    echo "Python found at $python_path"
+  fi
+
+  echo "[install] python3 package requirements"
+  echo "[install] python3-pip by 'sudo apt -qq --yes install python3-pip'"
+  echo `sudo apt -qq --yes install python3-pip`
+  echo "[install] python3 psutil package by 'python -m pip install psutil'"
+  echo `python -m pip install psutil`
+}
+
+
+function initialize_app_dir () {
+  if [[ ! -d $app_dir ]] 
+  then
+    echo "[initialize] $app_dir"
+    `mkdir $app_dir`
+  fi
+
+  if [[ ! -f $config_path ]] 
+  then
+    echo "[initialize] $config_path"
+    `touch $config_path`
+  fi
+
+  if [[ ! -f $log_path ]]
+  then
+    echo "[initialize] $log_path"
+    `touch $log_path`
+  fi
+    
+  if [[ ! -f $receivers_emails_path ]]
+  then
+    echo "[initialize] $receivers_emails_path"
+    `echo "" > $receivers_emails_path`
+  fi
+}
+
+function set_config () {
+  echo "" > $config_path
+  echo -n "email: "
+  read email
+  echo -n "password: "
+  read -s password 
+  echo $email >> $config_path
+  echo $password >> $config_path
+  echo ""
+}
+
+function copy_bin_files () {
+  echo "[copy] pyssmail.py into $local_bin_dir"
+  `cp -f ./pyssmail.py $local_bin_dir`
+  echo "[chmod] +x $local_bin_dir/pyssmail.py"
+  `chmod +x $local_bin_dir/pyssmail.py`
+
+  echo "[copy] pycronmail into $local_bin_dir"
+  `cp -f ./pycronmail $local_bin_dir`
+  echo "[chmod] +x $local_bin_dir/pycronmail"
+  `chmod +x $local_bin_dir/pycronmail`
+}
+
+function set_cron_job () {
+  echo "[set] cron job"
+  u=`whoami`
+  r=`crontab -l | grep "no crontab for $u"`
+  if [[ $r != "" ]]
+  then
+    echo "no crontab for $u"
+    `crontab cront`
+  fi
+  
+  # the job
+  job="* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path"
+
+  `crontab -l > cront.tmp`
+  check=`cat cront.tmp | grep "$job"`
+  if [[ $check == "" ]]
+  then
+    `echo "* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path" >> cront.tmp`
+    `crontab cront.tmp`
+    `rm cront.tmp`
+  fi
+  echo "[complete] setting cron job"
+}
+
+# if install command provided
+if [[ "$1" == "install" ]]
+then
+  d=` dirname $0 `
+  echo $d
+  if [[ "$d" == "$local_bin_dir" ]]
+  then
+    echo "Installion locked in this state!"
+    exit 0
+  fi
+
+  echo "Install ${0##*/}"
+  if [[ "$2" == "--no-package-change" ]] 
+  then
+    echo "skipping system update"
+  else
+    echo "Updating system with 'sudo apt -qq update'"
+    echo `sudo apt -qq update`
+    install_python
+  fi
+
+  initialize_app_dir
+  echo ""
+  echo "[initialize] configs"
+  set_config
+  echo ""
+  copy_bin_files
+  echo ""
+  set_cron_job
+  echo "[complete] installation of ${0##*/}"
+fi
+
+# if set_config command provided
+if [[ "$1" == "set_config" ]]
+then
+  echo "Set config"
+  set_config
+fi
+
+# if add_receiver command provided
+if [[ "$1" == "add_receiver" ]]
+then
+  echo "Add receiver email"
+  echo -n "email: "
+  read email
+  echo $email >> $receivers_emails_path
+fi
+

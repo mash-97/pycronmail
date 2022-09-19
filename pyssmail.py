@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from platform import java_ver
 import sys
 import os
 import time
@@ -242,17 +241,32 @@ if __name__ == '__main__':
   if(len(sys.argv)!=4):
     exit(1)
   
+  # first arg log file path
   log_file_path = sys.argv[1]
   logging.basicConfig(filename=log_file_path, encoding='utf-8', level=logging.DEBUG, format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p')
   logging.info("==== Begin ====")
 
+  # second arg config file path
   sender_config_file_path = sys.argv[2]
+
+  # third arg receiver emails file path
   receiver_emails_store_path = sys.argv[3]
   
-  sender = parse_sender_config(sender_config_file_path)
-  receivers = parse_receiver_emails(receiver_emails_store_path)
+  if not os.path.exists(sender_config_file_path):
+    logging.info("given config path doesn't exist. abort!")
+    exit(1)
+  else:
+    sender = parse_sender_config(sender_config_file_path)
+    logging.info(f"sender email: {sender['email']}")
 
+  receivers = []
+  if not os.path.exists(receiver_emails_store_path):
+    logging.info(f"receivers emails path doesn't exist!")
+  else:
+    receivers = parse_receiver_emails(receiver_emails_store_path)
+  
   # generate the system status message
+  logging.info(f"generate system status")
   fssb = form_system_status_body(sender['qoute'])
   logging.info(f"Message: \n{fssb['text']}")
   
