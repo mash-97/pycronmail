@@ -130,7 +130,7 @@ function set_config () {
 #
 function copy_bin_files () {
   echo "[copy] pyssmail.py into $local_bin_dir"
-  `cp -f ./pyssmail.py $local_bin_dir`
+  `cp -f ./pyssmail.py $local_bin_dir/`
   echo "[chmod] +x $local_bin_dir/pyssmail.py"
   `chmod +x $local_bin_dir/pyssmail.py`
 
@@ -202,6 +202,9 @@ then
   echo ""
   echo "[initialize] configs"
   set_config
+  echo ""
+  echo "[confirm] $local_bin_dir"
+  confirm_local_bin
   echo ""
   copy_bin_files
   echo ""
