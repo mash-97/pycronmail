@@ -1,5 +1,5 @@
 # pycronmail
-`pycronmail` is an app that sends system status mail to registered emails.
+`pycronmail` is an app that sends a basic system status mail to registered emails.
 
 ## Description
 * This app consists of two programs `pycronmail` a bash file and `pyssmail.py` a
