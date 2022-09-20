@@ -1,5 +1,10 @@
 #!/usr/bin/bash
 
+#
+# author: mash
+# email: mahimnhd97@gmail.com
+# 
+
 # define variables
 app_dir=$HOME/.${0##*/}
 config_path=$app_dir/${0##*/}.config
@@ -8,7 +13,9 @@ receivers_emails_path=$app_dir/receivers.email
 local_bin_dir=$HOME/.local/bin
 pyssmail_path=$local_bin_dir/pyssmail.py
 
+#
 # confirm local bin dir exists and exists in the $PATH
+#
 function confirm_local_bin () {
   if [[ -d $HOME/.local ]]
   then
@@ -34,9 +41,11 @@ function confirm_local_bin () {
   echo "[OK] $HOME/.local/bin"
 }
 
-# install command function
+#
+# install python if it doesn't exist in the 
+# system
+#
 function install_python () {
-  # check for python installation
   echo "Check for python"
   python_path=`which python`
 
@@ -49,7 +58,6 @@ function install_python () {
     then
       echo "Trying to install python3 from the script..." 
       echo "If it fails to install python3 please install python3 first manually then proceed with the script again."
-      # install python
       echo "[install] python3"
       echo `sudo apt install -qq --yes python3`
     else
@@ -67,7 +75,12 @@ function install_python () {
   echo `python -m pip install psutil`
 }
 
-
+#
+# initialize app dir in the home
+# directory to store config files
+# sender emails and password,
+# receivers emails etc.
+#
 function initialize_app_dir () {
   if [[ ! -d $app_dir ]] 
   then
@@ -94,6 +107,11 @@ function initialize_app_dir () {
   fi
 }
 
+#
+# take sender details from the user
+# email and password
+# will be stored inside the app dir
+# 
 function set_config () {
   echo "" > $config_path
   echo -n "email: "
@@ -105,6 +123,11 @@ function set_config () {
   echo ""
 }
 
+#
+# necessary files are copied 
+# into the local bin dir for easy access
+# and it's effective functionality
+#
 function copy_bin_files () {
   echo "[copy] pyssmail.py into $local_bin_dir"
   `cp -f ./pyssmail.py $local_bin_dir`
@@ -117,6 +140,10 @@ function copy_bin_files () {
   `chmod +x $local_bin_dir/pycronmail`
 }
 
+#
+# set cron job in the current user's crontab
+# if the same job already exists it should ignore
+#
 function set_cron_job () {
   echo "[set] cron job"
   u=`whoami`
@@ -141,7 +168,16 @@ function set_cron_job () {
   echo "[complete] setting cron job"
 }
 
-# if install command provided
+
+
+
+# =================================
+# main program starts here
+# =================================
+
+# *********************************
+# install [--no-package-change]
+# *********************************
 if [[ "$1" == "install" ]]
 then
   d=` dirname $0 `
@@ -173,14 +209,18 @@ then
   echo "[complete] installation of ${0##*/}"
 fi
 
-# if set_config command provided
+# *********************************
+# set_config 
+# *********************************
 if [[ "$1" == "set_config" ]]
 then
   echo "Set config"
   set_config
 fi
 
-# if add_receiver command provided
+# *********************************
+# add_receiver
+# *********************************
 if [[ "$1" == "add_receiver" ]]
 then
   echo "Add receiver email"

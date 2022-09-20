@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+#
+# author: mash
+# email: mahimnhd97@gmail.com
+# 
+
 import sys
 import os
 import time
@@ -81,6 +86,9 @@ def get_host_stats():
   }
   return host
 
+#
+# construct the message
+#
 def form_system_status_body(qoute=None):
   qoute = qoute or {'qoute': "Life is short! O human race, fall in love.", 'writer': "Wanderer Master Maeda"}
   start_time = time.time()
@@ -168,6 +176,9 @@ def form_system_status_body(qoute=None):
 
   return {'text': text, 'html': html}
 
+# 
+# message wrapper with email.MIMEMultipartText
+# 
 def get_system_status_message(sender_email, receiver_email, text, html):
   # time
   current_datetime = datetime.datetime.today()
@@ -191,6 +202,9 @@ def get_system_status_message(sender_email, receiver_email, text, html):
   return message
 
 
+#
+# send the mail 
+# 
 def send_mail(sender_email, sender_password, receiver_email, message):
   # Create secure connection with server and send email
   context = ssl.create_default_context()
@@ -203,7 +217,10 @@ def send_mail(sender_email, sender_password, receiver_email, message):
       
 
 
-
+#
+# parse sender configs from the 
+# given path
+#
 def parse_sender_config(file_path):
   sender_email = None
   sender_password = None
@@ -225,6 +242,9 @@ def parse_sender_config(file_path):
 
   return {'email': sender_email, 'password': sender_password, 'qoute': qoute}
 
+# 
+# parse receiver emails from the given path
+#
 def parse_receiver_emails(file_path):
   receiver_emails = []
   with open(file_path, "r") as fp:
@@ -236,6 +256,9 @@ def parse_receiver_emails(file_path):
   return receiver_emails
 
 
+# =================================
+# main program starts here
+# =================================
 if __name__ == '__main__':
   # parse args or exit with 1
   if(len(sys.argv)!=4):
