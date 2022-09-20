@@ -23,5 +23,5 @@
 # m h  dom mon dow   command
 # hello from mash
 
-* * * * * /home/molvo/.local/bin/pyssmail.py /home/molvo/.pycronmail/pycronmail.log /home/molvo/.pycronmail/pycronmail.config /home/molvo/.pycronmail/receivers.email
+# * * * * * /home/molvo/.local/bin/pyssmail.py /home/molvo/.pycronmail/pycronmail.log /home/molvo/.pycronmail/pycronmail.config /home/molvo/.pycronmail/receivers.email
 
