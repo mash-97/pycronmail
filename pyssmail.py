@@ -57,11 +57,17 @@ def get_disk_usage():
 
 # get battery status
 def get_battery_status():
-  battery_status = psutil.sensors_battery()
-  battery_status = {
-    "percent": battery_status.percent,
-    "power_plugged": battery_status.power_plugged
-  }
+  try:
+    battery_status = psutil.sensors_battery()
+    battery_status = {
+      "percent": battery_status.percent,
+      "power_plugged": battery_status.power_plugged
+    }
+  except Exception as exception:
+    battery_status = {
+      "percent": 0.00,
+      "power_plugged": exception
+    }
   return battery_status
 
 # get virtual memory stats
