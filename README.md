@@ -35,7 +35,7 @@ pycronmail$ # or if you have python, python-psutil already installed
 pycronmail$ ./pycronmail install --no-package-change 
 ```
 
-After the successful installation there will have a job installed in the `crontab`.
+After the successful installation the `pyssmail.py` program will be set in the `crontab`.
 
 To add receiver:
 ```bash
