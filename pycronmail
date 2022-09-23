@@ -12,6 +12,7 @@ log_path=$app_dir/${0##*/}.log
 receivers_emails_path=$app_dir/receivers.email
 local_bin_dir=$HOME/.local/bin
 pyssmail_path=$local_bin_dir/pyssmail.py
+cron_job="* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path"
 
 #
 # confirm local bin dir exists and exists in the $PATH
@@ -145,7 +146,7 @@ function copy_bin_files () {
 # if the same job already exists it should ignore
 #
 function set_cron_job () {
-  echo "[set] cron job"
+  echo "[set] cron job '$cron_job'"
   u=`whoami`
   r=`crontab -l | grep "no crontab for $u"`
   if [[ $r != "" ]]
@@ -154,18 +155,46 @@ function set_cron_job () {
     `crontab cront`
   fi
   
-  # the job
-  job="* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path"
-
   `crontab -l > cront.tmp`
-  check=`cat cront.tmp | grep "$job"`
+  check=`cat cront.tmp | grep "$cron_job"`
   if [[ $check == "" ]]
   then
-    `echo "* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path" >> cront.tmp`
+    `echo "$cron_job" >> cront.tmp`
     `crontab cront.tmp`
-    `rm cront.tmp`
+  else
+    echo "[found] job already exists!"
   fi
-  echo "[complete] setting cron job"
+  `rm cront.tmp`
+  echo "[complete] setting cron job '$cron_job'"
+}
+
+#
+# delete cron job in the current user's crontab
+# if the same job doesn't exist it should ignore
+#
+function delete_cron_job () {
+  echo "[remove] cron job"
+  u=`whoami`
+  r=`crontab -l | grep "no crontab for $u"`
+  if [[ $r != "" ]]
+  then
+    echo "no crontab for $u"
+    `crontab cront`
+  fi
+  
+  `crontab -l > cront.tmp`
+  check=`cat cront.tmp | grep "$cron_job"`
+  if [[ $check != "" ]]
+  then
+    echo "[found] cron job '$check'"
+    `cat cront.tmp | grep -v "$cron_job" > cront2.tmp`
+    `crontab cront2.tmp`
+    `rm cront2.tmp`
+  else
+    echo "[not found] job not found!"
+  fi
+  `rm cront.tmp`
+  echo "[complete] removing cron job '$cron_job'"
 }
 
 
@@ -230,5 +259,23 @@ then
   echo -n "email: "
   read email
   echo $email >> $receivers_emails_path
+fi
+
+# *********************************
+# stop (deletes the cron job if exists)
+# *********************************
+if [[ "$1" == "stop" ]]
+then
+  delete_cron_job
+  echo "Stopped!"
+fi
+
+# *********************************
+# start (set the cron job)
+# *********************************
+if [[ "$1" == "start" ]]
+then
+  set_cron_job
+  echo "Started!"
 fi
 
