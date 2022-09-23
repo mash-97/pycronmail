@@ -47,6 +47,16 @@ To set sender credentials:
 $ pycronmail set_config
 ```
 
+To stop the cron-job:
+```bash
+$ pycronmail stop
+```
+
+To start the cron-job:
+```bash
+$ pycronmail start
+```
+
 # Conclusion
 For the test purpose the `cronjob` will run the `pyssmail.py` program every minute!
 
