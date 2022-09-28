@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 #
-# author: mash
+# author: mash-97
 # email: mahimnhd97@gmail.com
 # 
 
@@ -197,7 +197,14 @@ function delete_cron_job () {
   echo "[complete] removing cron job '$cron_job'"
 }
 
-
+function check_first_install {
+  if [[ ! -f "$local_bin_dir/pycronmail"  ]] || [[ ! -f "$local_bin_dir/pyssmail.py" ]]
+  then
+    echo "pycronmail not installed properly!"
+    echo "run 'pycronmail install'"
+    exit 1
+  fi
+}
 
 
 # =================================
@@ -246,6 +253,7 @@ fi
 # *********************************
 if [[ "$1" == "set_config" ]]
 then
+  check_first_install
   echo "Set config"
   set_config
 fi
@@ -255,6 +263,7 @@ fi
 # *********************************
 if [[ "$1" == "add_receiver" ]]
 then
+  check_first_install
   echo "Add receiver email"
   echo -n "email: "
   read email
@@ -266,6 +275,7 @@ fi
 # *********************************
 if [[ "$1" == "stop" ]]
 then
+  check_first_install
   delete_cron_job
   echo "Stopped!"
 fi
@@ -275,7 +285,31 @@ fi
 # *********************************
 if [[ "$1" == "start" ]]
 then
+  check_first_install
   set_cron_job
   echo "Started!"
+fi
+
+
+# *********************************
+# destroy (destroy or uninstall)
+# *********************************
+if [[ "$1" == "destroy" ]]
+then
+  check_first_install
+  delete_cron_job
+  
+  if [[ "$2" == "--all" ]]
+  then
+    echo "[remove] $app_dir"
+    `rm -rf "$app_dir"`
+    echo "[complete] removing $app_dir"
+  fi
+  # remove local_bin_dir in-package files
+  echo "[remove] $local_bin_dir/pycronmail"
+  `rm -f "$local_bin_dir/pycronmail"`
+  echo "[remove] $local_bin_dir/pyssmail.py"
+  `rm -f "$local_bin_dir/pyssmail.py"`
+  echo "May the destroy be successfull!"
 fi
 
