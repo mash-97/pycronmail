@@ -9,11 +9,14 @@ python file that collects system status and send it to the receiver email.
 * It is a basic CLI program for the app.
 * It provides the basic interface for the user.
 * It supports linux-debian environment.
-* It has 3 commands: `install`, `set_config`, `add_receiver`.
+* It has commands: `install`, `set_config`, `add_receiver`. `start`, `stop`, `destroy`
 * `install` to the CLI as a command parameter it installs the app in the current
 user environment.
 * `set_config` sets the sender email credentials.
 * `add_receiver` add receiver email who will receive system status.
+* `start` sets the cronjob 
+* `stop` unsets the cronjob
+* `destroy` cleans up the installation | `--all` option for everything
 
 ## `pyssmail.py`
 * The purpose of the `pyssmail.py` program is to collect the system information, 
@@ -55,6 +58,13 @@ $ pycronmail stop
 To start the cron-job:
 ```bash
 $ pycronmail start
+```
+
+To destroy the installation:
+```bash
+$ pycronmail destroy 
+or
+$ pycronmail destroy --all
 ```
 
 # Conclusion
