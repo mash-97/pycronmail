@@ -14,6 +14,19 @@ local_bin_dir=$HOME/.local/bin
 pyssmail_path=$local_bin_dir/pyssmail.py
 cron_job="* * * * * $pyssmail_path $log_path $config_path $receivers_emails_path"
 
+if [[ "$1" == "cf" ]]
+then
+  echo $config_path
+elif [[ "$1" == "lp" ]]
+then
+  echo $log_path
+elif [[ "$1" == "rep" ]]
+then
+  echo $receivers_emails_path
+else
+  echo "'All beings are hungry! To get devoured and to get feeded!'"
+fi
+
 #
 # confirm local bin dir exists and exists in the $PATH
 #
@@ -140,6 +153,7 @@ function copy_bin_files () {
   echo "[chmod] +x $local_bin_dir/pycronmail"
   `chmod +x $local_bin_dir/pycronmail`
 }
+
 
 #
 # set cron job in the current user's crontab
@@ -292,6 +306,25 @@ fi
 
 
 # *********************************
+# status (get status)
+# *********************************
+if [[ "$1" == "status" ]]
+then
+  check_first_install
+  check=$(crontab -l | grep "$cron_job")
+  if [[ $check == "" ]]
+  then
+    echo "cronjob not set!"
+    echo "run \`pycronmail start\` to set the job!"
+  else
+    echo "cronjob running!"
+    echo "receiver emails are: "
+    echo $( cat $receivers_emails_path )
+  fi
+  exit 0
+fi
+
+# *********************************
 # destroy (destroy or uninstall)
 # *********************************
 if [[ "$1" == "destroy" ]]
@@ -313,3 +346,28 @@ then
   echo "May the destroy be successfull!"
 fi
 
+
+# *********************************
+# help
+# *********************************
+if [[ "$1" == "help" ]]
+then
+  echo "pycronmail COMMAND [OPTIONS]"
+  echo ""
+  echo "COMMAND:"
+  echo "install       To install the program"
+  echo "destroy       To destroy the program"
+  echo "status        To get status"
+  echo "start         Start the cronjob"
+  echo "stop          Stop the cronjob"
+  echo "add_receiver  To add receiver email"
+  echo ""
+  echo "[OPTIONS]:"
+  echo "--no-package-change     Skip system update during installation."
+  echo "--all                   Destroy all known related beings of the program during destroy!"
+  echo ""
+  echo "Author:"
+  echo "mash-97"
+  echo "mahimnhd97@gmail.com"
+  echo "https://github.com/mash-97/pycronmail"
+fi
