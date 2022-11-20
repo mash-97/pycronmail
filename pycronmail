@@ -23,7 +23,7 @@ then
 elif [[ "$1" == "rep" ]]
 then
   echo $receivers_emails_path
-else
+elif [[ "$1" == "" ]]
   echo "'All beings are hungry! To get devoured and to get feeded!'"
 fi
 
