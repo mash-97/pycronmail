@@ -24,6 +24,7 @@ elif [[ "$1" == "rep" ]]
 then
   echo $receivers_emails_path
 elif [[ "$1" == "" ]]
+then
   echo "'All beings are hungry! To get devoured and to get feeded!'"
 fi
 
